@@ -1,98 +1,117 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState } from "react";
+import { 
+  StyleSheet, 
+  Text, 
+  View, 
+  ScrollView, 
+  TextInput, 
+  SafeAreaView, 
+  StatusBar 
+} from "react-native";
+import StudentCard from "./StudentCard";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+export default function StudentDirectory() {
+  const [students, setStudents] = useState([
+    { id: "s1", name: "Ana Cruz", year: "3rd Year", flagged: true },
+    { id: "s2", name: "Bea Santos", year: "2nd Year", flagged: false },
+    { id: "s3", name: "Cid Ramos", year: "4th Year", flagged: false },
+    { id: "s4", name: "Dex Alonzo", year: "1st Year", flagged: false },
+    { id: "s5", name: "Eli Tan", year: "3rd Year", flagged: false },
+  ]);
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleToggleFlag = (id: string) => {
+    setStudents((prevStudents) =>
+      prevStudents.map((student) =>
+        student.id === id ? { ...student, flagged: !student.flagged } : student
+      )
     );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+  };
+
+  const filteredStudents = students.filter((student) =>
+    student.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-}
 
-export default function HomeScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+ <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" />
+      {/* Dark Header Section */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Student Directory</Text>
+        <Text style={styles.headerSubtitle}>
+          {filteredStudents.length} {filteredStudents.length === 1 ? "student" : "students"} this term
+        </Text>
+      </View>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+      {/* Main Content Area */}
+      <View style={styles.body}>
+        {/* Search Input Box */}
+        <TextInput
+          style={styles.searchBar}
+          placeholder="🔍 Search students..."
+          placeholderTextColor="#9a96b8"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+        {/* Scrollable Student List */}
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        >
+          {filteredStudents.map((student) => (
+            <StudentCard
+              key={student.id}
+              id={student.id}
+              name={student.name}
+              year={student.year}
+              flagged={student.flagged}
+              onToggleFlag={handleToggleFlag}
+            />
+          ))}
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    backgroundColor: "#181344",
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
+    backgroundColor: "#181344",
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#ffffff",
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    color: "#b1acdb",
+    marginTop: 4,
+  },
+  body: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    backgroundColor: "#f7f6fc",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  searchBar: {
+    backgroundColor: "#ede9f7",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    fontSize: 15,
+    color: "#181344",
+    marginBottom: 16,
   },
 });
